@@ -12,7 +12,7 @@ const props = defineProps({
     },
     contentClasses: {
         type: Array,
-        default: () => ['py-1', 'bg-white'],
+        default: () => ['py-1', 'bg-white border border-transparent'],
     },
 });
 
@@ -35,11 +35,11 @@ const widthClass = computed(() => {
 
 const alignmentClasses = computed(() => {
     if (props.align === 'left') {
-        return 'ltr:origin-top-left rtl:origin-top-right start-0';
+        return 'origin-top-left left-0';
     }
 
     if (props.align === 'right') {
-        return 'ltr:origin-top-right rtl:origin-top-left end-0';
+        return 'origin-top-right right-10';
     }
 
     return 'origin-top';
@@ -47,7 +47,7 @@ const alignmentClasses = computed(() => {
 </script>
 
 <template>
-    <div class="relative">
+    <div class="flex">
         <div @click="open = ! open">
             <slot name="trigger" />
         </div>
@@ -71,6 +71,7 @@ const alignmentClasses = computed(() => {
                 @click="open = false"
             >
                 <div class="rounded-md ring-1 ring-black ring-opacity-5" :class="contentClasses">
+                    <slot name="title" />
                     <slot name="content" />
                 </div>
             </div>

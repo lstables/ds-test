@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -10,6 +10,13 @@ import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 
 defineProps({
     title: String,
+    flash: {
+        type: Object,
+        default: () => ({
+            message: usePage().props.flash.message,
+            error: usePage().props.flash.error,
+        }),
+    },
 });
 
 const showingNavigationDropdown = ref(false);
@@ -31,7 +38,9 @@ const logout = () => {
     <div>
         <Head :title="title" />
 
-        <Banner />
+        <Banner v-if="$page.props.flash.message" :message="$page.props.flash.message" :errorMessage="$page.props.flash.error" />
+
+        <Banner v-if="flash.message" :message="flash.message" :errorMessage="flash.error" />
 
         <div class="min-h-screen bg-gray-100">
             <nav class="bg-white border-b border-gray-100">
@@ -276,7 +285,14 @@ const logout = () => {
             <!-- Page Heading -->
             <header v-if="$slots.header" class="bg-white shadow">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    <slot name="header" />
+                    <div class="flex justify-between">
+                        <div>
+                            <slot name="header" />
+                        </div>
+                        <div>
+                            <slot name="actions" />
+                        </div>
+                    </div>
                 </div>
             </header>
 

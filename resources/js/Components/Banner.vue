@@ -1,55 +1,73 @@
-<script setup>
-import { ref, watchEffect } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-
-const page = usePage();
-const show = ref(true);
-const style = ref('success');
-const message = ref('');
-
-watchEffect(async () => {
-    style.value = page.props.jetstream.flash?.bannerStyle || 'success';
-    message.value = page.props.jetstream.flash?.banner || '';
-    show.value = true;
-});
-</script>
-
 <template>
-    <div>
-        <div v-if="show && message" :class="{ 'bg-indigo-500': style == 'success', 'bg-red-700': style == 'danger' }">
-            <div class="max-w-screen-xl mx-auto py-2 px-3 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between flex-wrap">
-                    <div class="w-0 flex-1 flex items-center min-w-0">
-                        <span class="flex p-2 rounded-lg" :class="{ 'bg-indigo-600': style == 'success', 'bg-red-600': style == 'danger' }">
-                            <svg v-if="style == 'success'" class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-50">
+    <div v-if="showNotification && message || errorMessage" class="flex w-full flex-col items-center space-y-4 sm:items-end">
+        <transition
+            enter-active-class="transform ease-out duration-300 transition"
+            enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+            enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+            leave-active-class="transition ease-in duration-100"
+            leave-from-class="opacity-100"
+            leave-to-class="opacity-0"
+        >
+            <div
+              v-if="showNotification"
+              class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5"
+              :class="message ? 'border border-green-400 bg-green-400 text-green-900' : 'border border-red-400 text-rose-800'"
+            >
+                <div class="p-4">
+                <div class="flex items-start">
 
-                            <svg v-if="style == 'danger'" class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-                            </svg>
-                        </span>
-
-                        <p class="ms-3 font-medium text-sm text-white truncate">
-                            {{ message }}
-                        </p>
+                    <div class="flex-shrink-0">
+                        <CheckCircleIcon v-if="message" class="h-6 w-6 text-green-900" aria-hidden="true" />
+                        <CircleExclamationIcon v-if="errorMessage" class="h-6 w-6 text-red-900" aria-hidden="true" />
+                    </div>
+                    <div class="ml-3 w-0 flex-1 pt-0.5" v-if="message">
+                        <p class="text-sm font-medium text-green-900">Success</p>
+                        <p class="mt-1 text-sm text-green-900">{{ message }}</p>
                     </div>
 
-                    <div class="shrink-0 sm:ms-3">
-                        <button
-                            type="button"
-                            class="-me-1 flex p-2 rounded-md focus:outline-none sm:-me-2 transition"
-                            :class="{ 'hover:bg-indigo-600 focus:bg-indigo-600': style == 'success', 'hover:bg-red-600 focus:bg-red-600': style == 'danger' }"
-                            aria-label="Dismiss"
-                            @click.prevent="show = false"
-                        >
-                            <svg class="h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                    <div class="ml-3 w-0 flex-1 pt-0.5" v-if="errorMessage">
+                        <p class="text-sm font-medium text-white">Error</p>
+                        <p class="mt-1 text-sm text-white">{{ errorMessage }}</p>
+                    </div>
+
+                    <div class="ml-4 flex flex-shrink-0">
+                    <button
+                        type="button"
+                        @click="showNotification = false"
+                        :class="{
+                            'text-green-900 hover:text-green-200 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-200': message,
+                            'text-rose-900 hover:text-rose-200 hover:bg-rose-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-200': errorMessage,
+                        }"
+                        class="inline-flex rounded-md">
+                            <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+                    </button>
                     </div>
                 </div>
+                </div>
             </div>
-        </div>
+        </transition>
     </div>
+</div>
 </template>
+
+<script setup>
+import CheckCircleIcon from '@/Icons/circle-check.vue'
+import CircleExclamationIcon from '@/Icons/circle-exclamation.vue'
+import XMarkIcon from '@/Icons/x-sign.vue'
+import { ref, onMounted } from 'vue'
+
+defineProps({
+    message: String,
+    errorMessage: String,
+});
+
+const showNotification = ref(false)
+
+onMounted(() => {
+    showNotification.value = true
+    setTimeout(() => {
+        showNotification.value = false
+    }, 5000)
+})
+</script>
